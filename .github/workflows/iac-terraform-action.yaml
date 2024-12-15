@@ -43,11 +43,6 @@ jobs:
         working-directory: terraform
         run: terraform validate
 
-      # 7. Planificar o Terraform
-      - name: Planificar Terraform
-        working-directory: terraform
-        run: terraform plan -out=tfplan
-
       # 8. Aplicar a configuração do Terraform
       - name: Aplicar Terraform
         working-directory: terraform
