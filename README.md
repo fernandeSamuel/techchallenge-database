@@ -2,7 +2,7 @@
 
 ## Modelagem ## 
 
-![Modelo Fisico dos Dados](./assets/modelo-fisico-dados.png)
+![Modelo Fisico dos Dados](./assets/modelo-fisico-dados.png) 
 
 
 ## Justificativa ##
