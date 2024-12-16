@@ -37,12 +37,12 @@ resource "aws_db_instance" "techchallenge-rds" {
 
 # Criar tabela e inserir 10 CPFs com local-exec
 resource "null_resource" "create_table_and_insert_cpfs" {
-  depends_on = [aws_db_instance.techchallenge_rds]
+  depends_on = [aws_db_instance.techchallenge-rds]
 
   provisioner "local-exec" {
     command = <<EOT
     PGPASSWORD="password1234" psql \
-      --host=${aws_db_instance.techchallenge_rds.address} \
+      --host=${aws_db_instance.techchallenge-rds.address} \
       --port=5432 \
       --username=master \
       --dbname=techchallenge \
