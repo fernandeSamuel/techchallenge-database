@@ -35,15 +35,15 @@ jobs:
 
       # 5. Inicializar Terraform
       - name: Inicializar Terraform
-        working-directory: terraform
+        working-directory: terraform/rds
         run: terraform init
 
       # 6. Validar a configuração do Terraform
       - name: Validar Terraform
-        working-directory: terraform
+        working-directory: terraform/rds
         run: terraform validate
 
       # 8. Aplicar a configuração do Terraform
       - name: Aplicar Terraform
-        working-directory: terraform
+        working-directory: terraform/rds
         run: terraform apply -auto-approve
