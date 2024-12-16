@@ -22,7 +22,7 @@ resource "aws_security_group" "rds_sg" {
 }
 
 # Instância RDS PostgreSQL
-resource "aws_db_instance" "techchallenge_rds" {
+resource "aws_db_instance" "techchallenge-rds" {
   allocated_storage      = 20
   engine                 = "postgres"
   engine_version         = "16.1"
