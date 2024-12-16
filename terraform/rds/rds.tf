@@ -1,12 +1,3 @@
-# Provedor PostgreSQL
-terraform {
-  required_providers {
-    pg = {
-      source  = "cyrilgdn/pg"
-      version = "~> 1.0"
-    }
-  }
-}
 
 # Security Group para permitir acesso ao RDS (porta 5432)
 resource "aws_security_group" "rds_sg" {
@@ -18,7 +9,7 @@ resource "aws_security_group" "rds_sg" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] # Permite acesso público (apenas para teste)
   }
 
   egress {
@@ -30,68 +21,49 @@ resource "aws_security_group" "rds_sg" {
   }
 }
 
-# Criação da instância RDS PostgreSQL
+# Instância RDS PostgreSQL
 resource "aws_db_instance" "techchallenge_rds" {
   allocated_storage      = 20
   engine                 = "postgres"
   engine_version         = "16.1"
   instance_class         = "db.t3.micro"
-  name                   = "techchallenge"
+  db_name                = "techchallenge"
   username               = "master"
   password               = "password1234"
   publicly_accessible    = true
   skip_final_snapshot    = true
-  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
 }
 
-# Subnet Group para RDS
-resource "aws_db_subnet_group" "rds_subnet_group" {
-  name        = "rds-subnet-group"
-  description = "Subnet group for RDS instance"
-  subnet_ids  = ["subnet-xxxxxxxx", "subnet-yyyyyyyy"] # Substitua pelos IDs de subnets públicas
-}
-
-# Configuração do Provedor PostgreSQL
-provider "pg" {
-  host     = aws_db_instance.techchallenge_rds.address
-  port     = 5432
-  database = aws_db_instance.techchallenge_rds.name
-  username = aws_db_instance.techchallenge_rds.username
-  password = aws_db_instance.techchallenge_rds.password
-  sslmode  = "disable"
-}
-
-# Criar a tabela 'clientes' com a coluna 'cpf'
-resource "pg_exec" "create_table" {
+# Criar tabela e inserir 10 CPFs com local-exec
+resource "null_resource" "create_table_and_insert_cpfs" {
   depends_on = [aws_db_instance.techchallenge_rds]
 
-  queries = [
-    <<EOT
-    CREATE TABLE IF NOT EXISTS clientes (
-      id SERIAL PRIMARY KEY,
-      cpf VARCHAR(11) NOT NULL UNIQUE
-    );
-    EOT
-  ]
-}
+  provisioner "local-exec" {
+    command = <<EOT
+    PGPASSWORD="password1234" psql \
+      --host=${aws_db_instance.techchallenge_rds.address} \
+      --port=5432 \
+      --username=master \
+      --dbname=techchallenge \
+      --command="
+      CREATE TABLE IF NOT EXISTS clientes (
+        id SERIAL PRIMARY KEY,
+        cpf VARCHAR(11) NOT NULL UNIQUE
+      );
 
-# Inserir 10 valores aleatórios na tabela 'clientes'
-resource "pg_exec" "insert_cpfs" {
-  depends_on = [pg_exec.create_table]
-
-  queries = [
-    <<EOT
-    INSERT INTO clientes (cpf) VALUES ('12345678901');
-    INSERT INTO clientes (cpf) VALUES ('23456789012');
-    INSERT INTO clientes (cpf) VALUES ('34567890123');
-    INSERT INTO clientes (cpf) VALUES ('45678901234');
-    INSERT INTO clientes (cpf) VALUES ('56789012345');
-    INSERT INTO clientes (cpf) VALUES ('67890123456');
-    INSERT INTO clientes (cpf) VALUES ('78901234567');
-    INSERT INTO clientes (cpf) VALUES ('89012345678');
-    INSERT INTO clientes (cpf) VALUES ('90123456789');
-    INSERT INTO clientes (cpf) VALUES ('01234567890');
+      INSERT INTO clientes (cpf) VALUES
+      ('12345678901'),
+      ('23456789012'),
+      ('34567890123'),
+      ('45678901234'),
+      ('56789012345'),
+      ('67890123456'),
+      ('78901234567'),
+      ('89012345678'),
+      ('90123456789'),
+      ('01234567890');
+      "
     EOT
-  ]
+  }
 }
